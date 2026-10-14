@@ -186,16 +186,6 @@ La API se probó con casos de éxito, de validación, 404 y paginación, y la in
 
 ---
 
-## Historial
-
-Este repositorio une el backend y el frontend con `git subtree`, de modo que conserva el historial de ambos:
-
-| Commit | Contenido |
-|---|---|
-| `715f3e4`, `20ee8b3`, `4e9413f` | Código inicial del backend (repositorio de la docente) |
-| `b8e4fc2` | Código inicial del frontend (repositorio de la docente) |
-| `6e3d3b6` | Retos 1 y 2 (backend) |
-| `d620a89` | Reto 3 (frontend) |
-| `6c5a3ca` | Reto 4 (frontend) |
+## Créditos
 
 **Código base:** [pmpvhr/code](https://github.com/pmpvhr/code) (backend) y [pmpvhr/maestria](https://github.com/pmpvhr/maestria) (frontend).
