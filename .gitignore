@@ -1,0 +1,14 @@
+# Dependencias y artefactos de build (backend y frontend)
+node_modules/
+dist/
+.angular/
+out-tsc/
+
+# Logs y entorno local
+*.log
+.env
+
+# Editores / sistema
+.idea/
+.DS_Store
+Thumbs.db
