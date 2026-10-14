@@ -1,0 +1,200 @@
+# Sistema de Gestión de Empleados: Stack MEAN
+
+**Práctica 03 · Patrones de Diseño de APIs** · Maestría de Software, Universidad Politécnica Salesiana
+**Autor:** Jhonatan Villacís
+
+Aplicación CRUD de empleados con **MongoDB, Express, Angular y Node.js** sobre TypeScript. El código inicial del laboratorio se refactorizó en **4 retos** para pasar de un CRUD acoplado y mutable a una arquitectura desacoplada, validada y reactiva.
+
+| Capa | Tecnología |
+|---|---|
+| Backend | Node.js 24, Express 5, TypeScript, Mongoose 9, Zod 4, `tsx` |
+| Frontend | Angular 17 (SSR), RxJS 7, Materialize CSS |
+| Base de datos | MongoDB 9 (local o Atlas) |
+
+---
+
+## Estructura del repositorio
+
+```
+mean-empleados-app/
+├── backend/                         API REST (Express + TypeScript)
+│   └── src/
+│       ├── index.ts                 raíz de composición: decide la implementación del repositorio
+│       ├── app.ts                   createApp(repositorio): middlewares, rutas, manejo de errores
+│       ├── config/database.ts       conexión a MongoDB (MONGO_URI)
+│       ├── domain/employee.ts       entidad Employee (sin dependencias de BD)
+│       ├── repositories/            IEmployeeRepository (contrato)                      ← Reto 1
+│       ├── infrastructure/mongo/    modelo Mongoose + MongoEmployeeRepository            ← Reto 1
+│       ├── dto/employee.dto.ts      esquemas Zod para body, params y query               ← Reto 2
+│       ├── middlewares/             validate (Zod) e interceptor global de errores       ← Reto 2
+│       ├── http/api-response.ts     Response Wrapper (sendSuccess / sendError)           ← Reto 2
+│       ├── errors/app-error.ts      AppError, NotFoundError
+│       ├── controllers/             EmployeeController (solo conoce la interfaz)
+│       └── routes/                  rutas /api/v1/empleados
+├── frontend/                        Angular 17
+│   └── src/app/
+│       ├── services/employee.service.ts         servicio reactivo con BehaviorSubject     ← Reto 3
+│       ├── containers/employee-manager/         Smart component (orquestador)             ← Reto 4
+│       ├── components/employee-form/            Dumb: formulario (@Input / @Output)       ← Reto 4
+│       ├── components/employee-list/            Dumb: rejilla (@Input / @Output)          ← Reto 4
+│       ├── components/error-alert/              Dumb: alerta de error reutilizable        ← Reto 4
+│       └── models/                              Empleado y ApiResponse
+└── docs/README-guia-docente.md      enunciado original del laboratorio
+```
+
+---
+
+## Puesta en marcha
+
+### Requisitos
+
+- Node.js 20 o superior y npm.
+- MongoDB en ejecución (local en `mongodb://127.0.0.1:27017` o una cadena de MongoDB Atlas).
+- Opcional: Postman, MongoDB Compass.
+
+### 1. Backend (puerto 3000)
+
+```bash
+cd backend
+npm install
+npm run dev          # recarga automática con tsx watch
+```
+
+La conexión se configura con la variable `MONGO_URI`. Si no se define, se usa `mongodb://127.0.0.1/usuarios_db`.
+
+```bash
+# PowerShell
+$env:MONGO_URI="mongodb+srv://usuario:clave@cluster/usuarios_db"; npm run dev
+```
+
+### 2. Frontend (puerto 4200)
+
+```bash
+cd frontend
+npm install
+npm start            # ng serve con el Angular CLI local; abrir http://localhost:4200
+```
+
+La URL del API está en `frontend/src/environments/environment.ts`.
+
+---
+
+## API REST
+
+Base: `http://localhost:3000/api/v1`
+
+| Método | Ruta | Descripción | Éxito |
+|---|---|---|---|
+| GET | `/empleados` | Consulta completa | 200 |
+| GET | `/empleados?page=1&limit=10` | Consulta paginada (incluye `meta`) | 200 |
+| GET | `/empleados/:id` | Consulta por id | 200 / 404 |
+| POST | `/empleados` | Registro con validación | 201 |
+| PUT | `/empleados/:id` | Actualización total (todos los campos) | 200 / 404 |
+| PATCH | `/empleados/:id` | Actualización parcial (al menos un campo) | 200 / 404 |
+| DELETE | `/empleados/:id` | Eliminación | 200 / 404 |
+
+**Cuerpo de POST / PUT:**
+
+```json
+{ "nombre": "Ana Pérez", "cargo": "Analista", "departamento": "TI", "sueldo": 1500 }
+```
+
+Reglas: los textos se recortan y deben tener entre 2 y 100 caracteres (cargo y departamento, hasta 80). El `sueldo` debe ser numérico, mayor que 0 y hasta 100000. Se rechazan los campos no permitidos (por ejemplo `_id` o `createdAt`).
+
+**Toda respuesta tiene la misma forma (Response Wrapper):**
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Empleados obtenidos correctamente",
+  "data": [ { "id": "6ac1...", "nombre": "Ana Pérez", "cargo": "Analista", "departamento": "TI", "sueldo": 1500 } ],
+  "meta": { "page": 1, "limit": 10, "total": 25, "totalPages": 3 },
+  "error": null,
+  "timestamp": "2026-10-14T05:00:00.000Z"
+}
+```
+
+`meta` solo aparece en la consulta paginada. Ejemplo de error:
+
+```json
+{
+  "success": false, "statusCode": 400, "message": "Los datos enviados no son válidos", "data": null,
+  "error": { "code": "VALIDATION_ERROR",
+             "details": [ { "campo": "sueldo", "mensaje": "El sueldo es obligatorio y debe ser numérico" } ] },
+  "timestamp": "..."
+}
+```
+
+| Código | HTTP | Cuándo |
+|---|---|---|
+| `VALIDATION_ERROR` | 400 | Body, params o query no cumplen el esquema Zod |
+| `MALFORMED_JSON` | 400 | El body no es JSON válido |
+| `NOT_FOUND` | 404 | El empleado no existe |
+| `ROUTE_NOT_FOUND` | 404 | La ruta no existe |
+| `INTERNAL_ERROR` | 500 | Error no controlado (el detalle solo se registra en el servidor) |
+
+---
+
+## Los 4 retos de refactorización
+
+### Reto 1: Patrón Repository (persistencia invertida)
+
+- **Problema:** los controladores importaban el modelo de Mongoose y acoplaban la capa HTTP al motor de base de datos.
+- **Solución:** la interfaz `IEmployeeRepository` define el contrato y `MongoEmployeeRepository` es la única clase que usa Mongoose; traduce `_id` a `id`. El `EmployeeController` recibe el repositorio por constructor (inyección de dependencias), y `index.ts` es el único lugar que decide la implementación concreta. El controlador **no importa Mongoose**: la API funciona igual con otro repositorio, por ejemplo uno en memoria.
+
+### Reto 2: Validación perimetral con DTO y Response Wrapper
+
+- **Problema:** no había validación, las respuestas tenían formatos distintos y los errores salían crudos.
+- **Solución:** esquemas Zod en `employee.dto.ts` para `req.body`, `req.params` y `req.query`, aplicados por el middleware reutilizable `validate`. El Response Wrapper (`sendSuccess` / `sendError`) da a todas las respuestas la misma forma, y un **interceptor global de errores** convierte `ZodError`, `AppError` y JSON mal formado en respuestas consistentes, sin exponer detalles internos.
+
+### Reto 3: Servicio reactivo e inmutabilidad (RxJS)
+
+- **Problema:** el componente guardaba arreglos mutables y llamaba directamente a `HttpClient`.
+- **Solución:** `EmployeeService` concentra el estado en `BehaviorSubject` **privados** y expone flujos de solo lectura (`employees$`, `loading$`, `error$`). Cada mutación emite un arreglo **nuevo**: `[...actual, nuevo]` al crear, `map` al actualizar y `filter` al eliminar. Los errores del backend se traducen a mensajes legibles.
+
+### Reto 4: Componentes Smart vs. Dumb
+
+- **Problema:** una sola vista monolítica mezclaba el formulario, la tabla y la lógica.
+- **Solución:** `EmployeeManagerComponent` (smart) es el único que conoce el servicio; consume los observables con el **async pipe** y orquesta los eventos. `EmployeeFormComponent`, `EmployeeListComponent` y `ErrorAlertComponent` (dumb) se comunican solo con `@Input()` y `@Output()`, usan `ChangeDetection.OnPush` y no tienen dependencias del servicio.
+
+```
+EmployeeService ──employees$──▶ EmployeeManager (smart, | async)
+       ▲                           │ [employees] ─▶ EmployeeList ──(edit / remove)──┐
+       └── create / update / delete ◀┤ [employee]  ─▶ EmployeeForm ──(save / cancel)─┤
+                                   └─────────────────── orquesta ◀────────────────────┘
+```
+
+---
+
+## Verificación
+
+```bash
+cd backend  && npm run typecheck                                # TypeScript estricto, sin errores
+cd frontend && npx ng build                                     # build de producción con SSR
+cd frontend && npx ng test --watch=false --browsers=ChromeHeadless   # 11 pruebas unitarias
+```
+
+Las pruebas unitarias cubren:
+- la carga y la inmutabilidad del servicio (crear emite un arreglo nuevo sin modificar el anterior);
+- los `@Input` y `@Output` de los componentes presentacionales;
+- que el formulario edita una copia del empleado;
+- la composición del orquestador.
+
+La API se probó con casos de éxito, de validación, 404 y paginación, y la interfaz con un flujo completo de crear, editar y eliminar en Chrome.
+
+---
+
+## Historial
+
+Este repositorio une el backend y el frontend con `git subtree`, de modo que conserva el historial de ambos:
+
+| Commit | Contenido |
+|---|---|
+| `715f3e4`, `20ee8b3`, `4e9413f` | Código inicial del backend (repositorio de la docente) |
+| `b8e4fc2` | Código inicial del frontend (repositorio de la docente) |
+| `6e3d3b6` | Retos 1 y 2 (backend) |
+| `d620a89` | Reto 3 (frontend) |
+| `6c5a3ca` | Reto 4 (frontend) |
+
+**Código base:** [pmpvhr/code](https://github.com/pmpvhr/code) (backend) y [pmpvhr/maestria](https://github.com/pmpvhr/maestria) (frontend).
