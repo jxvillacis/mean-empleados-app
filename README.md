@@ -151,7 +151,8 @@ Reglas: los textos se recortan y deben tener entre 2 y 100 caracteres (cargo y d
 ### Reto 3: Servicio reactivo e inmutabilidad (RxJS)
 
 - **Problema:** el componente guardaba arreglos mutables y llamaba directamente a `HttpClient`.
-- **Solución:** `EmployeeService` concentra el estado en `BehaviorSubject` **privados** y expone flujos de solo lectura (`employees$`, `loading$`, `error$`). Cada mutación emite un arreglo **nuevo**: `[...actual, nuevo]` al crear, `map` al actualizar y `filter` al eliminar. Los errores del backend se traducen a mensajes legibles.
+- **Solución:** `EmployeeService` concentra el estado en `BehaviorSubject` **privados** y expone flujos de solo lectura (`employees$`, `loading$`, `error$`, `selected$`, `formReset$`). Cada mutación emite un arreglo **nuevo**: `[...actual, nuevo]` al crear, `map` al actualizar y `filter` al eliminar. Los errores del backend se traducen a mensajes legibles.
+- **Sin suscripciones manuales en los componentes:** los métodos del servicio (`save`, `delete`, `select`, `cancelEdit`) no devuelven nada y gestionan internamente las peticiones HTTP. Los componentes solo leen flujos con el `async` pipe, que se suscribe y se desuscribe automáticamente.
 
 ### Reto 4: Componentes Smart vs. Dumb
 
@@ -161,7 +162,7 @@ Reglas: los textos se recortan y deben tener entre 2 y 100 caracteres (cargo y d
 ```
 EmployeeService ──employees$──▶ EmployeeManager (smart, | async)
        ▲                           │ [employees] ─▶ EmployeeList ──(edit / remove)──┐
-       └── create / update / delete ◀┤ [employee]  ─▶ EmployeeForm ──(save / cancel)─┤
+       └── save / select / delete  ◀┤ [employee]  ─▶ EmployeeForm ──(save / cancel)─┤
                                    └─────────────────── orquesta ◀────────────────────┘
 ```
 
@@ -172,11 +173,11 @@ EmployeeService ──employees$──▶ EmployeeManager (smart, | async)
 ```bash
 cd backend  && npm run typecheck                                # TypeScript estricto, sin errores
 cd frontend && npx ng build                                     # build de producción con SSR
-cd frontend && npx ng test --watch=false --browsers=ChromeHeadless   # 11 pruebas unitarias
+cd frontend && npx ng test --watch=false --browsers=ChromeHeadless   # 14 pruebas unitarias
 ```
 
 Las pruebas unitarias cubren:
-- la carga y la inmutabilidad del servicio (crear emite un arreglo nuevo sin modificar el anterior);
+- el servicio: carga, creación inmutable (arreglo nuevo sin modificar el anterior), actualización con PATCH, eliminación y manejo de errores;
 - los `@Input` y `@Output` de los componentes presentacionales;
 - que el formulario edita una copia del empleado;
 - la composición del orquestador.
