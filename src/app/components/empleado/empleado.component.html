@@ -1,43 +1,64 @@
-<div class="row">
-    <div class="col-md-4">
-    <div class="card">
-    <div class="card-body">
-<h1>Registro de Nuevo Empleado</h1>
-        <form #empleadoForm="ngForm" (ngSubmit)="addEmpleado(empleadoForm)"> 
-           <div class="form-group"> 
-                <input type="text" class="form-control" name="nombre" placeholder="Ingrese su nombre" [(ngModel)]="empleadoService.selectedEmpleado.nombre"> 
-            </div> 
-            <div class="form-group"> <input type="text" name="cargo" class="form-control" placeholder="Ingrese su cargo" [(ngModel)]="empleadoService.selectedEmpleado.cargo"> 
-            </div> 
-            <div class="form-group"> <input type="text" name="departamento" class="form-control" placeholder="Ingrese su departamento" [(ngModel)]="empleadoService.selectedEmpleado.departamento"> 
-            </div> 
-            <div class="form-group"> <input type="number" name="sueldo" class="form-control" placeholder="Ingrese su sueldo" [(ngModel)]="empleadoService.selectedEmpleado.sueldo"> 
-            </div> 
-            <button class="btn btn-primary">Crear</button> 
-            <button class="btn btn-secondary">Eliminar</button> 
-        </form>
+<div class="container">
+  <h4>Gestión de Empleados</h4>
+
+  <!-- Mensaje de error publicado por el servicio (error$) -->
+  <div class="card-panel red lighten-4 red-text text-darken-4" *ngIf="error$ | async as error">{{ error }}</div>
+
+  <div class="row">
+    <!-- Formulario de registro / edición -->
+    <div class="col s12 m4">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">{{ editingId ? 'Editar empleado' : 'Registro de nuevo empleado' }}</span>
+          <form #empleadoForm="ngForm" (ngSubmit)="save(empleadoForm)">
+            <div class="input-field">
+              <input id="nombre" type="text" name="nombre" placeholder="Nombre" required [(ngModel)]="form.nombre">
+            </div>
+            <div class="input-field">
+              <input id="cargo" type="text" name="cargo" placeholder="Cargo" required [(ngModel)]="form.cargo">
+            </div>
+            <div class="input-field">
+              <input id="departamento" type="text" name="departamento" placeholder="Departamento" required [(ngModel)]="form.departamento">
+            </div>
+            <div class="input-field">
+              <input id="sueldo" type="number" name="sueldo" placeholder="Sueldo" required min="1" [(ngModel)]="form.sueldo">
+            </div>
+            <button class="btn" type="submit">{{ editingId ? 'Actualizar' : 'Crear' }}</button>
+            <button class="btn-flat" type="button" (click)="cancel(empleadoForm)">Cancelar</button>
+          </form>
+        </div>
+      </div>
     </div>
-    </div>
-    </div>
-    <div class="col-md-8">
-    <table class="table table-striped">
-    <thead>
-    <tr><th>Nombre</th>
-    <th>Cargo</th>
-    <th>Departamento</th>
-    <th>Operaciones</th></tr>
-    </thead>
-    <tbody>
+
+    <!-- Rejilla de empleados: se alimenta de employees$ mediante el async pipe -->
+    <div class="col s12 m8">
+      <p *ngIf="loading$ | async">Cargando empleados...</p>
+      <table class="striped" *ngIf="employees$ | async as employees">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Cargo</th>
+            <th>Departamento</th>
+            <th>Sueldo</th>
+            <th>Operaciones</th>
+          </tr>
+        </thead>
         <tbody>
-            <tr *ngFor="let empleado of empleadoService.empleados">
-            <td>{{empleado.nombre}}</td>
-            <td>{{empleado.cargo}}</td>
-            <td>{{empleado.departamento}}</td>
-            <td><button class="btn btn-secondary">Actualizar</button>
-            <button class="btn btn-danger">Eliminar</button>
+          <tr *ngFor="let empleado of employees; trackBy: trackById">
+            <td>{{ empleado.nombre }}</td>
+            <td>{{ empleado.cargo }}</td>
+            <td>{{ empleado.departamento }}</td>
+            <td>{{ empleado.sueldo | currency:'USD' }}</td>
+            <td>
+              <button class="btn-small" type="button" (click)="edit(empleado)">Editar</button>
+              <button class="btn-small red" type="button" (click)="remove(empleado)">Eliminar</button>
             </td>
-            </tr>
+          </tr>
+          <tr *ngIf="employees.length === 0">
+            <td colspan="5">No hay empleados registrados.</td>
+          </tr>
         </tbody>
-    
-    </table>
+      </table>
     </div>
+  </div>
+</div>

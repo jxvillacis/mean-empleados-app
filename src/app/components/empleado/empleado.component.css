@@ -1,0 +1,7 @@
+.btn-small + .btn-small {
+  margin-left: 6px;
+}
+
+.btn-flat {
+  margin-left: 8px;
+}
