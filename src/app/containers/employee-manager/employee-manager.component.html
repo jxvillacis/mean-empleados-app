@@ -1,0 +1,29 @@
+<!-- Orquestador: lee los flujos con el async pipe y conecta los componentes presentacionales -->
+<div class="container">
+  <h4>Gestión de Empleados</h4>
+
+  <app-error-alert
+    [message]="error$ | async"
+    (dismiss)="onDismissError()">
+  </app-error-alert>
+
+  <div class="row">
+    <div class="col s12 m4">
+      <app-employee-form
+        [employee]="editing"
+        [resetSignal]="formReset"
+        (save)="onSave($event)"
+        (cancel)="onCancel()">
+      </app-employee-form>
+    </div>
+
+    <div class="col s12 m8">
+      <app-employee-list
+        [employees]="(employees$ | async) ?? []"
+        [loading]="(loading$ | async) ?? false"
+        (edit)="onEdit($event)"
+        (remove)="onRemove($event)">
+      </app-employee-list>
+    </div>
+  </div>
+</div>

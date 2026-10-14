@@ -8,7 +8,7 @@ describe('AppComponent', () => {
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule],
       declarations: [AppComponent],
-      // AppComponent solo se prueba como contenedor; <app-empleado> tiene su propia spec.
+      // AppComponent solo se prueba como contenedor; <app-employee-manager> tiene su propia spec.
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
   });
@@ -23,10 +23,10 @@ describe('AppComponent', () => {
     expect(fixture.componentInstance.title).toEqual('frontend');
   });
 
-  it('should render the empleado module', () => {
+  it('should render the employee manager', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-empleado')).not.toBeNull();
+    expect(compiled.querySelector('app-employee-manager')).not.toBeNull();
   });
 });

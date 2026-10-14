@@ -18,7 +18,9 @@ export class EmployeeService {
 
   // Estado privado.
   private readonly employeesSubject = new BehaviorSubject<Empleado[]>([]);
-  private readonly loadingSubject = new BehaviorSubject<boolean>(false);
+  // Empieza en true: la primera vista (incluida la que renderiza el servidor con SSR) muestra
+  // "Cargando..." en lugar de "No hay empleados" mientras llega la lista.
+  private readonly loadingSubject = new BehaviorSubject<boolean>(true);
   private readonly errorSubject = new BehaviorSubject<string | null>(null);
 
   // Flujos públicos de solo lectura.
