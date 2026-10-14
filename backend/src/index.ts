@@ -1,18 +1,19 @@
-import express from 'express';
-import cors from 'cors';
-import morgan from 'morgan';
-import { connectDatabase } from './config/database';
+import { createApp } from './app.js';
+import { connectDatabase } from './config/database.js';
+import { MongoEmployeeRepository } from './infrastructure/mongo/mongo-employee.repository.js';
 
+// Raíz de composición: el único lugar que decide qué implementación concreta se usa.
+const port = 3000;
 
- 
-const app=express(); 
-const port = 3000 
-connectDatabase(); // Conexión a la base de datos
-app.use(morgan('dev'));
- 
-app.use(express.json());
-app.use(cors()); 
+const main = async (): Promise<void> => {
+  await connectDatabase();
 
-app.listen(port, ()=>{ 
-    console.log('Servidor escuchando en el puerto ' + port); 
-})
+  const employeeRepository = new MongoEmployeeRepository();
+  const app = createApp(employeeRepository);
+
+  app.listen(port, () => {
+    console.log('Servidor escuchando en el puerto ' + port);
+  });
+};
+
+main();

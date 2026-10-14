@@ -1,15 +1,25 @@
-import express from 'express';
+import express, { type Express } from 'express';
+import cors from 'cors';
 import morgan from 'morgan';
+import { EmployeeController } from './controllers/employee.controller.js';
+import { errorHandler, notFoundHandler } from './middlewares/error-handler.js';
+import type { IEmployeeRepository } from './repositories/employee.repository.js';
+import { createEmployeeRouter } from './routes/employee.routes.js';
 
+// Construye la aplicación Express a partir de cualquier implementación del repositorio.
+export const createApp = (employeeRepository: IEmployeeRepository): Express => {
+  const app = express();
 
-const app = express();
-app.use(express.json());
-//app.use(cors());
+  app.use(morgan('dev'));
+  app.use(express.json());
+  app.use(cors());
 
-//settings
-app.set('puerto',process.env.PORT|| 3000);
-app.set('nombreApp','Gestión de empleados');
-app.use(morgan('dev'));
-app.use('/api/v1',require('./routes/empleados.routes'));
+  const employeeController = new EmployeeController(employeeRepository);
+  app.use('/api/v1', createEmployeeRouter(employeeController));
 
-module.exports=app;
+  // Siempre al final: rutas inexistentes y el interceptor global de errores.
+  app.use(notFoundHandler);
+  app.use(errorHandler);
+
+  return app;
+};
