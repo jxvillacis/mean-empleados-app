@@ -1,0 +1,21 @@
+<div class="card">
+  <div class="card-content">
+    <span class="card-title">{{ employee ? 'Editar empleado' : 'Registro de nuevo empleado' }}</span>
+    <form #empleadoForm="ngForm" (ngSubmit)="submit()">
+      <div class="input-field">
+        <input id="nombre" type="text" name="nombre" placeholder="Nombre" required [(ngModel)]="model.nombre">
+      </div>
+      <div class="input-field">
+        <input id="cargo" type="text" name="cargo" placeholder="Cargo" required [(ngModel)]="model.cargo">
+      </div>
+      <div class="input-field">
+        <input id="departamento" type="text" name="departamento" placeholder="Departamento" required [(ngModel)]="model.departamento">
+      </div>
+      <div class="input-field">
+        <input id="sueldo" type="number" name="sueldo" placeholder="Sueldo" required min="1" [(ngModel)]="model.sueldo">
+      </div>
+      <button class="btn" type="submit">{{ employee ? 'Actualizar' : 'Crear' }}</button>
+      <button class="btn-flat" type="button" (click)="cancel.emit()">Cancelar</button>
+    </form>
+  </div>
+</div>

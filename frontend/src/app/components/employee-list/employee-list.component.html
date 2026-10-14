@@ -1,0 +1,28 @@
+<p *ngIf="loading">Cargando empleados...</p>
+
+<table class="striped">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Cargo</th>
+      <th>Departamento</th>
+      <th>Sueldo</th>
+      <th>Operaciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let empleado of employees; trackBy: trackById">
+      <td>{{ empleado.nombre }}</td>
+      <td>{{ empleado.cargo }}</td>
+      <td>{{ empleado.departamento }}</td>
+      <td>{{ empleado.sueldo | currency:'USD' }}</td>
+      <td>
+        <button class="btn-small" type="button" (click)="edit.emit(empleado)">Editar</button>
+        <button class="btn-small red" type="button" (click)="remove.emit(empleado)">Eliminar</button>
+      </td>
+    </tr>
+    <tr *ngIf="!loading && employees.length === 0">
+      <td colspan="5">No hay empleados registrados.</td>
+    </tr>
+  </tbody>
+</table>

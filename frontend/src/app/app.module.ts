@@ -1,0 +1,35 @@
+import { NgModule } from '@angular/core';
+import { BrowserModule, provideClientHydration } from '@angular/platform-browser';
+import { provideHttpClient, withFetch } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+// Smart component (orquestador)
+import { EmployeeManagerComponent } from './containers/employee-manager/employee-manager.component';
+// Dumb components (presentacionales)
+import { EmployeeFormComponent } from './components/employee-form/employee-form.component';
+import { EmployeeListComponent } from './components/employee-list/employee-list.component';
+import { ErrorAlertComponent } from './components/error-alert/error-alert.component';
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    EmployeeManagerComponent,
+    EmployeeFormComponent,
+    EmployeeListComponent,
+    ErrorAlertComponent
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    FormsModule
+  ],
+  providers: [
+    provideClientHydration(),
+    provideHttpClient(withFetch()) // fetch es el transporte recomendado con SSR
+    // EmployeeService se registra solo con providedIn: 'root' (instancia única para toda la app).
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
