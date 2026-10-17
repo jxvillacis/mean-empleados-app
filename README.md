@@ -206,16 +206,17 @@ artillery run stress-test.yml --output artillery/resultado.json      # desde la 
 
 `stress-test.yml` envía, por cada usuario virtual, un POST válido (esperado 201) y, tras 1 s, uno con `sueldo: -500` (esperado 400). Son 20 s a 5 usuarios/s y 30 s subiendo de 15 a 50 usuarios/s. Los umbrales de `ensure` son p99 < 200 ms y menos de 1 % de errores.
 
-Resultado de la ejecución del 17 de octubre de 2026 (API local, MongoDB Atlas). Salida completa en `artillery/consola.txt`:
+Resultados de dos ejecuciones del 17 de octubre de 2026 (API local, MongoDB Atlas). Salidas completas en `artillery/consola.txt` (primera) y `artillery/consola2.txt` (segunda):
 
-| Métrica | Valor |
-|---|---|
-| Peticiones | 2150 (1075 usuarios virtuales, 0 fallidos) |
-| `http.codes.201` / `http.codes.400` | 1075 / 1075 |
-| p99 global | 175.9 ms (umbral 200 ms: cumple) |
-| Respuestas 201: mediana / p99 | 149.9 / 214.9 ms |
-| Respuestas 400: mediana / p99 | 1 / 7 ms |
-| Registros en Atlas tras la prueba | 1075 |
+| Métrica | Primera ejecución | Segunda ejecución |
+|---|---|---|
+| Peticiones | 2150 (1075 usuarios virtuales, 0 fallidos) | 2150 (1075 usuarios virtuales, 0 fallidos) |
+| `http.codes.201` / `http.codes.400` | 1075 / 1075 | 1075 / 1075 |
+| p99 global (umbral 200 ms) | 175.9 ms: cumple | 333.7 ms: no cumple |
+| Respuestas 201: mediana / p99 | 149.9 / 214.9 ms | 153 / 907 ms |
+| Respuestas 400: mediana / p99 | 1 / 7 ms | 1 / 125.2 ms |
+
+En ambas la mediana de las escrituras se mantiene cerca de 150 ms con cualquier carga. En la segunda, el p99 de las 201 y también el de las 400 se dispara en las dos ventanas de mayor carga (69 y 86 peticiones/s); como las 400 no llegan a la base, la espera se produce en el propio proceso de Node.
 
 ---
 
