@@ -29,7 +29,7 @@ mean-empleados-app/
 │       ├── middlewares/             validate (Zod) e interceptor global de errores       ← Reto 2
 │       ├── http/api-response.ts     Response Wrapper (sendSuccess / sendError)           ← Reto 2
 │       ├── errors/app-error.ts      AppError, NotFoundError
-│       ├── controllers/             EmployeeController (solo conoce la interfaz)
+│       ├── controllers/             EmployeeController (solo conoce la interfaz) y su prueba Jest  ← Práctica 5
 │       └── routes/                  rutas /api/v1/empleados
 ├── frontend/                        Angular 17
 │   └── src/app/
@@ -62,8 +62,10 @@ npm run dev          # recarga automática con tsx watch
 
 La conexión se configura con la variable `MONGO_URI`. Si no se define, se usa `mongodb://127.0.0.1/usuarios_db`.
 
+Para MongoDB Atlas, copia `backend/.env.example` como `backend/.env` y coloca la cadena del cluster. `npm run dev` y `npm start` cargan ese archivo, que no se versiona.
+
 ```bash
-# PowerShell
+# PowerShell, alternativa sin archivo .env
 $env:MONGO_URI="mongodb+srv://usuario:clave@cluster/usuarios_db"; npm run dev
 ```
 
@@ -183,6 +185,16 @@ Las pruebas unitarias cubren:
 - la composición del orquestador.
 
 La API se probó con casos de éxito, de validación, 404 y paginación, y la interfaz con un flujo completo de crear, editar y eliminar en Chrome.
+
+### Práctica 5: prueba unitaria del backend (Jest)
+
+```bash
+cd backend && npm test        # 4 pruebas de EmployeeController, sin Docker ni MongoDB
+```
+
+`src/controllers/employee.controller.spec.ts` inyecta en el controlador un doble de `IEmployeeRepository` creado con `jest.fn()`. No importa Mongoose: el controlador depende de la interfaz, no de la base. Cubre la consulta completa (200), la paginada con sus metadatos, la creación (201) y el `NotFoundError` cuando no existe el empleado.
+
+ts-jest 29 aún no es compatible con TypeScript 7, que usa el proyecto. Por eso las pruebas se compilan con TypeScript 5.9 (alias `typescript5`, ver `jest.ts5-transformer.cjs`); `npm run typecheck` sigue usando TypeScript 7.
 
 ---
 
