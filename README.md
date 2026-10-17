@@ -189,10 +189,10 @@ La API se probó con casos de éxito, de validación, 404 y paginación, y la in
 ### Práctica 5: prueba unitaria del backend (Jest)
 
 ```bash
-cd backend && npm test        # 4 pruebas de EmployeeController, sin Docker ni MongoDB
+cd backend && npm test        # 24 pruebas de EmployeeController, sin Docker ni MongoDB
 ```
 
-`src/controllers/employee.controller.spec.ts` inyecta en el controlador un doble de `IEmployeeRepository` creado con `jest.fn()`. No importa Mongoose: el controlador depende de la interfaz, no de la base. Cubre la consulta completa (200), la paginada con sus metadatos, la creación (201) y el `NotFoundError` cuando no existe el empleado.
+`src/controllers/employee.controller.spec.ts` inyecta en el controlador un doble de `IEmployeeRepository` creado con `jest.fn()`. No importa Mongoose: el controlador depende de la interfaz, no de la base. Cada método del controlador (`getAll`, `getById`, `create`, `replace`, `update`, `delete`) tiene 2 escenarios de éxito y 2 de error: respuestas 200/201 con el Response Wrapper, lo que se delega al repositorio, `NotFoundError` cuando el empleado no existe y la propagación de las fallas del repositorio al middleware de errores.
 
 ts-jest 29 aún no es compatible con TypeScript 7, que usa el proyecto. Por eso las pruebas se compilan con TypeScript 5.9 (alias `typescript5`, ver `jest.ts5-transformer.cjs`); `npm run typecheck` sigue usando TypeScript 7.
 
