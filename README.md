@@ -196,6 +196,27 @@ cd backend && npm test        # 4 pruebas de EmployeeController, sin Docker ni M
 
 ts-jest 29 aún no es compatible con TypeScript 7, que usa el proyecto. Por eso las pruebas se compilan con TypeScript 5.9 (alias `typescript5`, ver `jest.ts5-transformer.cjs`); `npm run typecheck` sigue usando TypeScript 7.
 
+### Práctica 5: prueba de estrés (Artillery)
+
+```bash
+npm install -g artillery
+cd backend && npm start                                              # API contra MongoDB Atlas (backend/.env)
+artillery run stress-test.yml --output artillery/resultado.json      # desde la raíz, en otra terminal
+```
+
+`stress-test.yml` envía, por cada usuario virtual, un POST válido (esperado 201) y, tras 1 s, uno con `sueldo: -500` (esperado 400). Son 20 s a 5 usuarios/s y 30 s subiendo de 15 a 50 usuarios/s. Los umbrales de `ensure` son p99 < 200 ms y menos de 1 % de errores.
+
+Resultado de la ejecución del 17 de octubre de 2026 (API local, MongoDB Atlas). Salida completa en `artillery/consola.txt`:
+
+| Métrica | Valor |
+|---|---|
+| Peticiones | 2150 (1075 usuarios virtuales, 0 fallidos) |
+| `http.codes.201` / `http.codes.400` | 1075 / 1075 |
+| p99 global | 175.9 ms (umbral 200 ms: cumple) |
+| Respuestas 201: mediana / p99 | 149.9 / 214.9 ms |
+| Respuestas 400: mediana / p99 | 1 / 7 ms |
+| Registros en Atlas tras la prueba | 1075 |
+
 ---
 
 ## Créditos

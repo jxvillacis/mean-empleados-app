@@ -1,0 +1,45 @@
+# Práctica 5, Fase B: prueba de estrés concurrente (ISO/IEC 25010: Eficiencia de desempeño).
+# Uso: con la API levantada (cd backend && npm start), desde la raíz del repo:
+#   artillery run stress-test.yml --output artillery/resultado.json
+config:
+  target: "http://localhost:3000"
+  plugins:
+    ensure: {} # Falla el proceso si no se cumplen los umbrales (SLA)
+  phases:
+    - duration: 20
+      arrivalRate: 5
+      name: "1. Fase de Calentamiento (Tráfico Base)"
+    - duration: 30
+      arrivalRate: 15
+      rampTo: 50
+      name: "2. Fase de Saturación Máxima (Pico de Carga)"
+  ensure:
+    thresholds:
+      - "http.response_time.p99": 200 # El 99 % de las transacciones debe procesarse en < 200 ms (comportamiento temporal)
+    maxErrorRate: 1 # No se permite más del 1 % de fallas de conexión HTTP
+
+scenarios:
+  - name: "Inundación transaccional perimetral (Payloads Mixtos Zod)"
+    flow:
+      # Flujo A: datos correctos -> recorre la tubería completa (Zod, controlador, repositorio, MongoDB Atlas). Esperado: 201.
+      - post:
+          url: "/api/v1/empleados"
+          json:
+            nombre: "Andrés Mendoza"
+            cargo: "Software Architect"
+            departamento: "I+D"
+            sueldo: 4200
+          capture:
+            # El Response Wrapper expone el id de dominio en data.id (no el _id de Mongo).
+            json: "$.data.id"
+            as: "employeeId"
+      - think: 1
+      # Flujo B: datos corruptos -> el DTO de Zod los rechaza antes de llegar a la base. Esperado: 400.
+      # "Al" cumple el mínimo de 2 caracteres; el campo ilegal es el sueldo negativo.
+      - post:
+          url: "/api/v1/empleados"
+          json:
+            nombre: "Al"
+            cargo: "Dev"
+            departamento: "TI"
+            sueldo: -500 # Campo ilegal
