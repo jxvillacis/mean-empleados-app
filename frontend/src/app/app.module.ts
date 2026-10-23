@@ -1,10 +1,11 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule, provideClientHydration } from '@angular/platform-browser';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 // Smart component (orquestador)
 import { EmployeeManagerComponent } from './containers/employee-manager/employee-manager.component';
 // Dumb components (presentacionales)
@@ -27,7 +28,13 @@ import { ErrorAlertComponent } from './components/error-alert/error-alert.compon
   ],
   providers: [
     provideClientHydration(),
-    provideHttpClient(withFetch()) // fetch es el transporte recomendado con SSR
+    // fetch es el transporte recomendado con SSR; withInterceptorsFromDi activa los interceptores de clase.
+    provideHttpClient(withFetch(), withInterceptorsFromDi()),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true // Permite encadenar múltiples interceptores si fuera necesario
+    }
     // EmployeeService se registra solo con providedIn: 'root' (instancia única para toda la app).
   ],
   bootstrap: [AppComponent]

@@ -62,11 +62,11 @@ npm run dev          # recarga automática con tsx watch
 
 La conexión se configura con la variable `MONGO_URI`. Si no se define, se usa `mongodb://127.0.0.1/usuarios_db`.
 
-Para MongoDB Atlas, copia `backend/.env.example` como `backend/.env` y coloca la cadena del cluster. `npm run dev` y `npm start` cargan ese archivo, que no se versiona.
+Copia `backend/.env.example` como `backend/.env` y completa `MONGO_URI` (cadena de MongoDB Atlas), `PORT` y `JWT_SECRET`. El servidor carga ese archivo con `dotenv` en la primera línea de `src/index.ts`, y no arranca sin `JWT_SECRET`. El archivo no se versiona.
 
 ```bash
-# PowerShell, alternativa sin archivo .env
-$env:MONGO_URI="mongodb+srv://usuario:clave@cluster/usuarios_db"; npm run dev
+# Generar una llave JWT aleatoria (256 bits)
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ### 2. Frontend (puerto 4200)
@@ -217,6 +217,15 @@ Resultados de dos ejecuciones del 17 de octubre de 2026 (API local, MongoDB Atla
 | Respuestas 400: mediana / p99 | 1 / 7 ms | 1 / 125.2 ms |
 
 En ambas la mediana de las escrituras se mantiene cerca de 150 ms con cualquier carga. En la segunda, el p99 de las 201 y también el de las 400 se dispara en las dos ventanas de mayor carga (69 y 86 peticiones/s); como las 400 no llegan a la base, la espera se produce en el propio proceso de Node.
+
+### Seguridad con JWT (actividades 1 a 6)
+
+- **Backend:** `src/middlewares/auth.middleware.ts` exige `Authorization: Bearer <token>`, verifica la firma HS256 con `JWT_SECRET` y deja el usuario (`id`, `rol`) en `req.user`. La lectura (`GET /empleados`) queda abierta; `POST`, `PUT`, `PATCH` y `DELETE` exigen token. Sin token responde 401 con `WWW-Authenticate: Bearer`; con un token vencido, mal firmado o sin `rol`, 403. Ambos usan el Response Wrapper.
+- **Frontend:** `src/app/core/interceptors/auth.interceptor.ts`, registrado en `AppModule` con `HTTP_INTERCEPTORS`, agrega la cabecera a las peticiones hacia la API con el token guardado en `localStorage` (`access_token`). No lo envía a otros dominios ni lo lee durante el renderizado en el servidor (SSR).
+
+```bash
+cd backend && npm test   # 31 pruebas: 24 del controlador y 7 del interceptor JWT
+```
 
 ---
 
