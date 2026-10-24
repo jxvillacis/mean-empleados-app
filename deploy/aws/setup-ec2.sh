@@ -60,6 +60,9 @@ echo "== 6. HTTPS con Let's Encrypt (Certbot agrega el 443 y redirige el 80)"
 if [ -n "$CORREO" ]; then REGISTRO=(-m "$CORREO"); else REGISTRO=(--register-unsafely-without-email); fi
 sudo certbot --nginx -d "$DOMINIO" --non-interactive --agree-tos "${REGISTRO[@]}" --redirect || \
   echo "AVISO: Certbot no pudo emitir el certificado; la API sigue disponible por http://$DOMINIO"
+# Certbot deja un 404 para los pedidos al 80 cuyo Host no es el dominio (p. ej. http://<IP>): se redirigen a HTTPS
+sudo sed -i "s#^\s*return 404; \# managed by Certbot#    return 301 https://$DOMINIO\$request_uri; \# acceso por IP#" "$CONF"
+sudo nginx -t && sudo systemctl reload nginx
 
 echo "== 7. Llave SSH para GitHub (deploy key de solo lectura)"
 [ -f "$HOME/.ssh/id_ed25519" ] || ssh-keygen -t ed25519 -C "servidor-produccion" -f "$HOME/.ssh/id_ed25519" -N ''
