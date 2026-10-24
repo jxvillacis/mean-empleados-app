@@ -34,7 +34,7 @@ export const createApp = ({ employeeRepository, authRepository, jwtSecret, corsO
     res.json({
       success: true,
       statusCode: 200,
-      message: 'API de empleados en línea',
+      message: 'API de empleados en línea v2',
       data: { entorno: process.env.NODE_ENV ?? 'development', instancia: process.env.NODE_APP_INSTANCE ?? '0' },
       timestamp: new Date().toISOString()
     });
