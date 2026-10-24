@@ -15,15 +15,19 @@ export interface AppDependencies {
   employeeRepository: IEmployeeRepository;
   authRepository: IAuthRepository;
   jwtSecret: string;
+  // Orígenes que pueden llamar a la API desde el navegador (p. ej. el frontend en Azure). Vacío = cualquiera (desarrollo).
+  corsOrigins?: string[];
 }
 
 // Construye la aplicación Express a partir de cualquier implementación de los repositorios.
-export const createApp = ({ employeeRepository, authRepository, jwtSecret }: AppDependencies): Express => {
+export const createApp = ({ employeeRepository, authRepository, jwtSecret, corsOrigins = [] }: AppDependencies): Express => {
   const app = express();
 
-  app.use(morgan('dev'));
+  // Detrás de Nginx: la IP real del cliente llega en X-Forwarded-For (se confía solo en el proxy inmediato).
+  app.set('trust proxy', 1);
+  app.use(morgan(':remote-addr :method :url :status :response-time ms'));
   app.use(express.json());
-  app.use(cors());
+  app.use(cors(corsOrigins.length ? { origin: corsOrigins } : undefined));
 
   // Registro ordenado de módulos independientes: autenticación (/api/v1/auth) y empleados (/api/v1/empleados).
   const authController = new AuthController(authRepository, jwtSecret);

@@ -1,0 +1,10 @@
+{
+  "name": "mean-alertas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Alertas de PM2 por webhook (Discord o Slack)",
+  "main": "notificador.cjs",
+  "dependencies": {
+    "pm2": "^7.1.1"
+  }
+}

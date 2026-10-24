@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
+    "build": "node node_modules/typescript/bin/tsc -p tsconfig.build.json",
+    "start:prod": "node dist/index.js",
     "crear-usuario": "tsx src/scripts/crear-usuario.ts",
     "typecheck": "node node_modules/typescript/bin/tsc --noEmit -p .",
     "test": "node --experimental-vm-modules --no-warnings=ExperimentalWarning node_modules/jest/bin/jest.js"

@@ -19,7 +19,9 @@ const main = async (): Promise<void> => {
   const app = createApp({
     employeeRepository: new MongoEmployeeRepository(),
     authRepository: new MongoAuthRepository(),
-    jwtSecret
+    jwtSecret,
+    // CORS_ORIGIN: lista separada por comas, p. ej. la URL del frontend en Azure App Service.
+    corsOrigins: (process.env.CORS_ORIGIN ?? '').split(',').map(o => o.trim()).filter(Boolean)
   });
 
   app.listen(port, () => {
