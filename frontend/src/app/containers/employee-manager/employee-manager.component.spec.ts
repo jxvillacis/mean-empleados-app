@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { FormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
 import { EmployeeFormComponent } from '../../components/employee-form/employee-form.component';
 import { EmployeeListComponent } from '../../components/employee-list/employee-list.component';
 import { ErrorAlertComponent } from '../../components/error-alert/error-alert.component';
@@ -12,7 +13,7 @@ describe('EmployeeManagerComponent (smart)', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [EmployeeManagerComponent, EmployeeFormComponent, EmployeeListComponent, ErrorAlertComponent],
-      imports: [HttpClientTestingModule, FormsModule]
+      imports: [HttpClientTestingModule, FormsModule, RouterTestingModule]
     }).compileComponents();
     fixture = TestBed.createComponent(EmployeeManagerComponent);
     fixture.detectChanges();

@@ -1,5 +1,7 @@
 import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 import { Empleado, EmpleadoPayload } from '../../models/empleado';
 import { EmployeeService } from '../../services/employee.service';
 
@@ -13,11 +15,21 @@ import { EmployeeService } from '../../services/employee.service';
  */
 @Component({
   selector: 'app-employee-manager',
-  templateUrl: './employee-manager.component.html'
+  templateUrl: './employee-manager.component.html',
+  styles: [`
+    .header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .session { display: flex; align-items: center; gap: 8px; }
+  `],
+  // Ruta protegida: el guard decide en el navegador, así que no se reutiliza el DOM del servidor.
+  host: { ngSkipHydration: 'true' }
 })
 export class EmployeeManagerComponent implements OnInit {
   private readonly employeeService = inject(EmployeeService);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  readonly currentUser$ = this.authService.currentUser$;
 
   readonly employees$ = this.employeeService.employees$;
   readonly loading$ = this.employeeService.loading$;
@@ -48,5 +60,10 @@ export class EmployeeManagerComponent implements OnInit {
 
   onDismissError(): void {
     this.employeeService.clearError();
+  }
+
+  onLogout(): void {
+    this.authService.logout();
+    this.router.navigate(['/auth']);
   }
 }

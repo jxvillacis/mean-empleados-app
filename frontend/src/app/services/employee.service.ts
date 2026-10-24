@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, finalize, map } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { toErrorMessage } from '../core/http/api-error';
 import { ApiResponse } from '../models/api-response';
 import { Empleado, EmpleadoPayload } from '../models/empleado';
 
@@ -121,15 +122,6 @@ export class EmployeeService {
 
   // Publica el error en error$ para que la vista lo muestre.
   private fail(err: HttpErrorResponse): void {
-    this.errorSubject.next(this.toMessage(err));
-  }
-
-  // Traduce la respuesta de error del backend (Response Wrapper) a un mensaje legible.
-  private toMessage(err: HttpErrorResponse): string {
-    if (err.status === 0) return 'No se pudo conectar con el servidor. Verifique que el backend esté en ejecución.';
-    const body = err.error as ApiResponse<null> | null;
-    const details = body?.error?.details;
-    if (details?.length) return details.map(d => d.mensaje).join(' · ');
-    return body?.message ?? 'Ocurrió un error inesperado.';
+    this.errorSubject.next(toErrorMessage(err));
   }
 }

@@ -236,6 +236,18 @@ npm run crear-usuario -- admin@empleados.local "<contraseña>" admin   # rol opc
 npm test   # 37 pruebas: 24 de empleados, 7 del interceptor JWT y 6 del login
 ```
 
+### Login en el frontend
+
+- **Rutas** (`app-routing.module.ts`): `/auth` muestra el login y `/employees` la gestión de empleados, protegida por `authGuard`. Sin sesión vigente, entrar directo a `/employees` redirige a `/auth?returnUrl=/employees`; después del login se vuelve a la ruta pedida (solo rutas internas, para evitar redirecciones abiertas).
+- **`AuthService`** (`core/services/auth.service.ts`): hace el login contra `POST /auth/login`, desempaqueta el Response Wrapper, guarda el token en `localStorage` (`access_token`) y publica el usuario en `currentUser$`. Un token vencido cuenta como sesión cerrada. Con SSR no toca `localStorage` en el servidor.
+- **Smart y Dumb:** `containers/login-dashboard` orquesta el login (servicio, redirección y errores con `app-error-alert`); `components/login-form` es presentación pura (`@Input() isLoading`, `@Output() submitLogin`).
+- **Interceptor:** toma el token de `AuthService`. Si la API rechaza el token (401 o 403), cierra la sesión y vuelve al login.
+- **Sesión:** la pantalla de empleados muestra el usuario y un botón para cerrar sesión.
+
+```bash
+cd frontend && npx ng test --watch=false --browsers=ChromeHeadless   # 28 pruebas
+```
+
 ---
 
 ## Créditos

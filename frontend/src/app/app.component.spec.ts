@@ -8,7 +8,7 @@ describe('AppComponent', () => {
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule],
       declarations: [AppComponent],
-      // AppComponent solo se prueba como contenedor; <app-employee-manager> tiene su propia spec.
+      // AppComponent solo se prueba como contenedor; las pantallas (login y empleados) tienen su propia spec.
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
   });
@@ -23,10 +23,10 @@ describe('AppComponent', () => {
     expect(fixture.componentInstance.title).toEqual('frontend');
   });
 
-  it('should render the employee manager', () => {
+  it('should render the router outlet (las pantallas dependen de la ruta: /auth o /employees)', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-employee-manager')).not.toBeNull();
+    expect(compiled.querySelector('router-outlet')).not.toBeNull();
   });
 });

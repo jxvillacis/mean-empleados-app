@@ -6,20 +6,24 @@ import { FormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
-// Smart component (orquestador)
+// Smart components (orquestadores)
 import { EmployeeManagerComponent } from './containers/employee-manager/employee-manager.component';
+import { LoginDashboardComponent } from './containers/login-dashboard/login-dashboard.component';
 // Dumb components (presentacionales)
 import { EmployeeFormComponent } from './components/employee-form/employee-form.component';
 import { EmployeeListComponent } from './components/employee-list/employee-list.component';
 import { ErrorAlertComponent } from './components/error-alert/error-alert.component';
+import { LoginFormComponent } from './components/login-form/login-form.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     EmployeeManagerComponent,
+    LoginDashboardComponent,
     EmployeeFormComponent,
     EmployeeListComponent,
-    ErrorAlertComponent
+    ErrorAlertComponent,
+    LoginFormComponent
   ],
   imports: [
     BrowserModule,

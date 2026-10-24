@@ -1,6 +1,12 @@
 <!-- Orquestador: lee los flujos con el async pipe y conecta los componentes presentacionales -->
 <div class="container">
-  <h4>Gestión de Empleados</h4>
+  <div class="header">
+    <h4>Gestión de Empleados</h4>
+    <div *ngIf="currentUser$ | async as user" class="session">
+      <span class="grey-text text-darken-2">{{ user.email }} ({{ user.rol }})</span>
+      <button type="button" class="btn-flat" (click)="onLogout()">Cerrar sesión</button>
+    </div>
+  </div>
 
   <app-error-alert
     [message]="error$ | async"

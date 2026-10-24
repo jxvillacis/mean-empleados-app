@@ -1,0 +1,22 @@
+<!-- Formulario de presentación pura: enlaces bidireccionales locales y un único evento hacia el padre.
+     Usa placeholder, como el formulario de empleados: Materialize no reubica las etiquetas de campos llenados por código. -->
+<div class="card">
+  <div class="card-content">
+    <span class="card-title center-align">Acceso al Laboratorio (JWT)</span>
+    <form (ngSubmit)="onSubmit()">
+      <div class="input-field">
+        <input id="login-email" type="email" name="email" autocomplete="username" required
+               placeholder="Correo institucional" aria-label="Correo institucional"
+               [(ngModel)]="formModel.email" [disabled]="isLoading">
+      </div>
+      <div class="input-field">
+        <input id="login-password" type="password" name="password" autocomplete="current-password" required
+               placeholder="Contraseña" aria-label="Contraseña"
+               [(ngModel)]="formModel.password" [disabled]="isLoading">
+      </div>
+      <button type="submit" class="btn waves-effect waves-light" style="width: 100%" [disabled]="isLoading">
+        {{ isLoading ? 'Validando firma criptográfica...' : 'Iniciar sesión' }}
+      </button>
+    </form>
+  </div>
+</div>
