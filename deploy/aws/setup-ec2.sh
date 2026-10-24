@@ -4,9 +4,9 @@
 # GitHub usará como deploy key. Es idempotente: se puede volver a ejecutar.
 #
 # Uso: subir este script y deploy/nginx/mean-api.conf al home de la EC2 (scp) y ejecutar allí:
-#   bash setup-ec2.sh <correo para Let's Encrypt>
+#   bash setup-ec2.sh [correo para avisos de Let's Encrypt]   (sin correo: registro sin avisos de vencimiento)
 set -euo pipefail
-CORREO=${1:?Uso: bash setup-ec2.sh <correo para Let\'s Encrypt>}
+CORREO=${1:-}
 APP_DIR=/var/www/mean-empleados
 IP=$(curl -fsS https://checkip.amazonaws.com)
 DOMINIO="${IP//./-}.sslip.io"   # nombre público que resuelve a la IP elástica (Let's Encrypt no emite para IPs)
@@ -57,7 +57,8 @@ sudo nginx -t && sudo systemctl reload nginx
 sudo ufw allow 'Nginx Full' >/dev/null || true   # el firewall efectivo es el grupo de seguridad de AWS
 
 echo "== 6. HTTPS con Let's Encrypt (Certbot agrega el 443 y redirige el 80)"
-sudo certbot --nginx -d "$DOMINIO" --non-interactive --agree-tos -m "$CORREO" --redirect || \
+if [ -n "$CORREO" ]; then REGISTRO=(-m "$CORREO"); else REGISTRO=(--register-unsafely-without-email); fi
+sudo certbot --nginx -d "$DOMINIO" --non-interactive --agree-tos "${REGISTRO[@]}" --redirect || \
   echo "AVISO: Certbot no pudo emitir el certificado; la API sigue disponible por http://$DOMINIO"
 
 echo "== 7. Llave SSH para GitHub (deploy key de solo lectura)"

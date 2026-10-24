@@ -3,7 +3,7 @@
 // <APP_DIR>/shared/backend.env, que post-deploy enlaza como backend/.env.
 //
 // Desplegar desde la PC local (Git Bash), con los datos de tu instancia y tu repositorio:
-//   export EC2_HOST=<IP elástica>  EC2_KEY=~/.ssh/<llave>.pem  GITHUB_REPO=git@github.com:<usuario>/mean-empleados-app.git
+//   export EC2_KEY=~/.ssh/mean-empleados.pem   (EC2_HOST y GITHUB_REPO permiten apuntar a otra instancia o repositorio)
 //   pm2 deploy ecosystem.config.js production setup   # solo la primera vez: crea la estructura en el servidor
 //   pm2 deploy ecosystem.config.js production         # cada vez: git pull, dependencias, build y reload sin caída
 const path = require('path');
@@ -49,10 +49,10 @@ module.exports = {
   deploy: {
     production: {
       user: 'ubuntu',
-      host: process.env.EC2_HOST || 'TU_IP_ELASTICA',
+      host: process.env.EC2_HOST || '34.239.85.180',
       key: process.env.EC2_KEY,
       ref: 'origin/practica-7-despliegue',
-      repo: process.env.GITHUB_REPO || 'git@github.com:TU_USUARIO/mean-empleados-app.git',
+      repo: process.env.GITHUB_REPO || 'git@github.com:jxvillacis/mean-empleados-app.git',
       path: APP_DIR,
       ssh_options: 'StrictHostKeyChecking=accept-new',
       'post-deploy': 'bash deploy/post-deploy.sh'
