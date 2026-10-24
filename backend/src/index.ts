@@ -1,6 +1,7 @@
 import 'dotenv/config'; // Primero: carga .env antes de que cualquier módulo lea process.env
 import { createApp } from './app.js';
 import { connectDatabase } from './config/database.js';
+import { MongoAuthRepository } from './infrastructure/mongo/mongo-auth.repository.js';
 import { MongoEmployeeRepository } from './infrastructure/mongo/mongo-employee.repository.js';
 
 // Raíz de composición: el único lugar que decide qué implementación concreta se usa.
@@ -15,8 +16,11 @@ if (!jwtSecret) {
 const main = async (): Promise<void> => {
   await connectDatabase();
 
-  const employeeRepository = new MongoEmployeeRepository();
-  const app = createApp(employeeRepository, jwtSecret);
+  const app = createApp({
+    employeeRepository: new MongoEmployeeRepository(),
+    authRepository: new MongoAuthRepository(),
+    jwtSecret
+  });
 
   app.listen(port, () => {
     console.log('Servidor escuchando en el puerto ' + port);

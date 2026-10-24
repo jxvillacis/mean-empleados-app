@@ -223,8 +223,17 @@ En ambas la mediana de las escrituras se mantiene cerca de 150 ms con cualquier 
 - **Backend:** `src/middlewares/auth.middleware.ts` exige `Authorization: Bearer <token>`, verifica la firma HS256 con `JWT_SECRET` y deja el usuario (`id`, `rol`) en `req.user`. La lectura (`GET /empleados`) queda abierta; `POST`, `PUT`, `PATCH` y `DELETE` exigen token. Sin token responde 401 con `WWW-Authenticate: Bearer`; con un token vencido, mal firmado o sin `rol`, 403. Ambos usan el Response Wrapper.
 - **Frontend:** `src/app/core/interceptors/auth.interceptor.ts`, registrado en `AppModule` con `HTTP_INTERCEPTORS`, agrega la cabecera a las peticiones hacia la API con el token guardado en `localStorage` (`access_token`). No lo envía a otros dominios ni lo lee durante el renderizado en el servidor (SSR).
 
+### Endpoint de usuarios: login (actividades 7 a 13)
+
+- `POST /api/v1/auth/login` con `{ "email", "password" }`. El DTO de Zod (`src/dto/auth.dto.ts`) normaliza el correo y rechaza campos extra como `rol`. `AuthController` compara la contraseña con su hash bcrypt y devuelve `{ token, user: { email, rol } }`: un JWT HS256 que vence en 2 horas.
+- Ante un correo no registrado o una contraseña incorrecta, responde lo mismo (401 `AUTH_FAILED`, mismo mensaje y tiempo parecido), para no revelar qué correos tienen cuenta.
+- Capas: entidad `User` (`src/domain/user.ts`), contrato `IAuthRepository` y su implementación `MongoAuthRepository` con el modelo `UserModel` (colección `users`, la contraseña guardada solo como hash bcrypt de costo 12).
+- No hay registro público. Los usuarios se crean con:
+
 ```bash
-cd backend && npm test   # 31 pruebas: 24 del controlador y 7 del interceptor JWT
+cd backend
+npm run crear-usuario -- admin@empleados.local "<contraseña>" admin   # rol opcional; por defecto "alumno"
+npm test   # 37 pruebas: 24 de empleados, 7 del interceptor JWT y 6 del login
 ```
 
 ---
