@@ -8,6 +8,13 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..\..')
+
+# Los avisos que npx y az escriben en stderr no son errores: solo cuenta su código de salida
+function Invoke-Checked([scriptblock]$cmd) {
+  $previous = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+  try { & $cmd } finally { $ErrorActionPreference = $previous }
+  if ($LASTEXITCODE -ne 0) { throw "Falló: $cmd" }
+}
 if ($ApiUrl -notmatch '^https://') { throw 'La API debe ser https: el App Service sirve el frontend por https y el navegador bloquea llamadas http (contenido mixto).' }
 
 # 1. URL de la API para producción (environment.prod.ts reemplaza a environment.ts en el build)
@@ -17,7 +24,7 @@ $contenido = "// Producción: la API corre en AWS EC2 (Nginx + PM2) y el fronten
 
 # 2. Build de producción con SSR
 Push-Location (Join-Path $root 'frontend')
-try { npx ng build; if ($LASTEXITCODE -ne 0) { throw 'Falló ng build' } } finally { Pop-Location }
+try { Invoke-Checked { npx ng build } } finally { Pop-Location }
 
 # 3. ZIP con rutas "/" (Compress-Archive de PowerShell 5.1 usa "\" y Linux no lo extrae bien)
 Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
@@ -33,9 +40,9 @@ try {
 } finally { $zip.Dispose() }
 
 # 4. Despliegue: sin compilar en el servidor y con el arranque del servidor SSR
-az webapp config appsettings set -g $ResourceGroup -n $WebApp --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false -o none
-az webapp config set -g $ResourceGroup -n $WebApp --startup-file 'node server/server.mjs' -o none
-az webapp deploy -g $ResourceGroup -n $WebApp --src-path $zipPath --type zip --clean true --restart true
-$hostName = az webapp show -g $ResourceGroup -n $WebApp --query defaultHostName -o tsv
+Invoke-Checked { az webapp config appsettings set -g $ResourceGroup -n $WebApp --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false -o none }
+Invoke-Checked { az webapp config set -g $ResourceGroup -n $WebApp --startup-file 'node server/server.mjs' -o none }
+Invoke-Checked { az webapp deploy -g $ResourceGroup -n $WebApp --src-path $zipPath --type zip --clean true --restart true }
+$hostName = Invoke-Checked { az webapp show -g $ResourceGroup -n $WebApp --query defaultHostName -o tsv }
 Write-Host "Frontend publicado: https://$hostName  (API: $ApiUrl)"
 Write-Host "Recuerda poner CORS_ORIGIN=https://$hostName en shared/backend.env de la EC2."
