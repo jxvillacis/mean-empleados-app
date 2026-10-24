@@ -29,6 +29,17 @@ export const createApp = ({ employeeRepository, authRepository, jwtSecret, corsO
   app.use(express.json());
   app.use(cors(corsOrigins.length ? { origin: corsOrigins } : undefined));
 
+  // Estado del servicio en la raíz: lo que se ve al abrir http://<IP> detrás de Nginx.
+  app.get('/', (_req, res) => {
+    res.json({
+      success: true,
+      statusCode: 200,
+      message: 'API de empleados en línea',
+      data: { entorno: process.env.NODE_ENV ?? 'development', instancia: process.env.NODE_APP_INSTANCE ?? '0' },
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // Registro ordenado de módulos independientes: autenticación (/api/v1/auth) y empleados (/api/v1/empleados).
   const authController = new AuthController(authRepository, jwtSecret);
   const employeeController = new EmployeeController(employeeRepository);
